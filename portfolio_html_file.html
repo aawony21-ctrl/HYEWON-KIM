@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYEWON KIM</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #000; }
+    #app { min-height: 100vh; }
+
+    #header {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 20px 24px;
+      background: #fff;
+      z-index: 100;
+    }
+    #header a { font-size: 13px; letter-spacing: 0.02em; text-decoration: none; color: #000; cursor: pointer; }
+    #header a:hover { opacity: 0.4; }
+
+    .page { display: none; padding-top: 60px; }
+    .page.active { display: block; }
+
+    #page-home { padding-top: 56px; }
+    #page-home .work-item { width: 100%; cursor: pointer; }
+    #page-home .thumb-wrap { position: relative; width: 100%; overflow: hidden; }
+    #page-home .thumb-wrap img { width: 100%; display: block; transition: opacity 0.2s; }
+    .thumb-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.08); opacity: 0; transition: opacity 0.2s; }
+    #page-home .work-item:hover .thumb-overlay { opacity: 1; }
+    .work-meta {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 10px 24px 11px;
+      font-size: 11px; letter-spacing: 0.04em;
+    }
+    .work-meta .cat { color: #888; }
+
+    #page-project { padding-top: 56px; }
+    .proj-header { padding: 32px 24px 20px; }
+    .proj-header h1 { font-size: 28px; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 6px; }
+    .proj-header .proj-meta { font-size: 11px; color: #888; letter-spacing: 0.04em; }
+    .proj-desc { padding: 20px 24px 40px; font-size: 12px; line-height: 1.9; color: #333; max-width: 560px; }
+    .proj-images img { width: 100%; display: block; }
+
+    #page-about { padding: 80px 24px 60px; max-width: 480px; }
+    #page-about h2 { font-size: 11px; letter-spacing: 0.08em; color: #888; margin-bottom: 32px; font-weight: 400; }
+    #page-about p { font-size: 12px; line-height: 1.9; color: #111; margin-bottom: 28px; }
+    #page-about .contact { font-size: 11px; letter-spacing: 0.03em; }
+    #page-about .contact a { color: #000; text-decoration: none; }
+    #page-about .contact a:hover { opacity: 0.4; }
+    #page-about .contact div { margin-bottom: 6px; }
+
+    #lightbox {
+      display: none; position: fixed; inset: 0;
+      background: #fff; z-index: 200;
+      justify-content: center; align-items: center; cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img { max-width: 92vw; max-height: 92vh; object-fit: contain; }
+    #lightbox-close {
+      position: fixed; top: 20px; right: 24px;
+      font-size: 11px; letter-spacing: 0.06em; cursor: pointer; color: #000;
+      z-index: 201; font-family: inherit; background: none; border: none;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <a onclick="showPage('home')">HYEWON KIM</a>
+    <a onclick="showPage('about')">ABOUT</a>
+  </div>
+
+  <div id="page-home" class="page active"></div>
+
+  <div id="page-project" class="page">
+    <div class="proj-header">
+      <h1 id="proj-title"></h1>
+      <div class="proj-meta" id="proj-meta"></div>
+    </div>
+    <div class="proj-desc" id="proj-desc"></div>
+    <div class="proj-images" id="proj-images"></div>
+  </div>
+
+  <div id="page-about" class="page">
+    <h2>ABOUT</h2>
+    <p>Hyewon Kim is a Seoul-based designer working across visual identity, editorial, and motion. Her work often begins with language — a tension between what is said and what is seen — and resolves itself through restraint, repetition, and careful attention to form.</p>
+    <p>She has collaborated with cultural institutions, independent studios, and emerging brands, approaching each project as a negotiation between concept and material. Nothing is treated as background; everything is deliberate.</p>
+    <p>Currently available for freelance projects and long-term collaborations. She believes good design is less about visibility and more about clarity — the kind that only shows itself slowly.</p>
+    <div class="contact">
+      <div>EMAIL &nbsp;&nbsp;<a href="mailto:khw.works@gmail.com">khw.works@gmail.com</a></div>
+      <div>INSTAGRAM &nbsp;&nbsp;<a href="https://instagram.com/khw.lab" target="_blank">@khw.lab</a></div>
+    </div>
+  </div>
+
+  <div id="lightbox">
+    <button id="lightbox-close" onclick="closeLightbox()">CLOSE</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+</div>
+
+<script>
+const works = [
+  {
+    id: 1,
+    title: "Brand Identity — Studio Null",
+    category: "BRANDING",
+    year: "2024",
+    thumb: "images/work1_thumb.jpg",
+    hasDetail: true,
+    desc: "Visual identity system for a conceptual design studio.",
+    images: ["images/work1_1.jpg", "images/work1_2.jpg"]
+  },
+  {
+    id: 2,
+    title: "Editorial — Unnamed Journal No.3",
+    category: "EDITORIAL",
+    year: "2024",
+    thumb: "images/work2_thumb.jpg",
+    hasDetail: false
+  }
+  // 작업 추가 시 여기에 계속 넣으세요
+];
+
+function buildHome() {
+  const home = document.getElementById('page-home');
+  home.innerHTML = works.map(w => `
+    <div class="work-item" onclick="handleWorkClick(${w.id})">
+      <div class="thumb-wrap">
+        <img src="${w.thumb}" alt="${w.title}" loading="lazy">
+        <div class="thumb-overlay"></div>
+      </div>
+      <div class="work-meta">
+        <span class="title">${w.title}</span>
+        <span class="cat">${w.category}, ${w.year}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function handleWorkClick(id) {
+  const w = works.find(x => x.id === id);
+  if (!w) return;
+  if (w.hasDetail) showProject(w);
+  else openLightbox(w.thumb);
+}
+
+function showProject(w) {
+  document.getElementById('proj-title').textContent = w.title;
+  document.getElementById('proj-meta').textContent = `${w.category} — ${w.year}`;
+  document.getElementById('proj-desc').textContent = w.desc || '';
+  document.getElementById('proj-images').innerHTML = (w.images || []).map(src =>
+    `<img src="${src}" alt="" loading="lazy">`
+  ).join('');
+  showPage('project');
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+buildHome();
+</script>
+</body>
+</html>
